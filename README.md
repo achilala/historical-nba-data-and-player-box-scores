@@ -1,6 +1,8 @@
 # NBA Analytics Dashboard
 
-![NBA Analytics Dashboard](docs/screenshot.png)
+![Player Stats](docs/screenshot.png)
+
+![Team Stats](docs/screenshot_team_stats.png)
 
 An interactive analytics dashboard for exploring historical NBA data from 1946 to present, built with Streamlit and Plotly — inspired by [nba.com/stats](https://www.nba.com/stats).
 
