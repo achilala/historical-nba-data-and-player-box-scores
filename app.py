@@ -364,20 +364,24 @@ def player_profile_tab():
     st.divider()
     st.subheader("Game Log")
 
-    available_seasons = sorted(df["season"].dropna().unique().astype(int), reverse=True)
     col1, col2 = st.columns([2, 2])
     with col1:
+        log_game_type = st.selectbox(
+            "Season Type",
+            ["Regular Season", "Playoffs", "All"],
+            key="profile_log_gt",
+        )
+
+    available_seasons = sorted(
+        game_type_filter(df, log_game_type)["season"].dropna().unique().astype(int),
+        reverse=True,
+    )
+    with col2:
         log_season = st.selectbox(
             "Season",
             available_seasons,
             format_func=season_label,
             key="profile_log_season",
-        )
-    with col2:
-        log_game_type = st.selectbox(
-            "Season Type",
-            ["Regular Season", "Playoffs", "All"],
-            key="profile_log_gt",
         )
 
     log_df = df[df["season"] == log_season].copy()
@@ -491,16 +495,16 @@ def team_history_tab():
 st.title("🏀 NBA Analytics Dashboard")
 st.caption("Historical data from 1946–present | Source: Kaggle — eoinamoore/historical-nba-data-and-player-box-scores")
 
-tab1, tab2, tab3, tab4 = st.tabs(["Player Stats", "Team Stats", "Player Profile", "Team History"])
+tab1, tab2, tab3, tab4 = st.tabs(["Player Stats", "Player Profile", "Team Stats", "Team History"])
 
 with tab1:
     player_stats_tab()
 
 with tab2:
-    team_stats_tab()
+    player_profile_tab()
 
 with tab3:
-    player_profile_tab()
+    team_stats_tab()
 
 with tab4:
     team_history_tab()
