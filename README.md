@@ -4,6 +4,10 @@
 
 ![Team Stats](docs/screenshot_team_stats.png)
 
+![Player Profile](docs/screenshot_player_profile.png)
+
+![Team History](docs/screenshot_team_history.png)
+
 An interactive analytics dashboard for exploring historical NBA data from 1946 to present, built with Streamlit and Plotly — inspired by [nba.com/stats](https://www.nba.com/stats).
 
 ## Features

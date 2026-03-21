@@ -340,6 +340,7 @@ def player_profile_tab():
     career["FG%"] = (career["FG_made"].astype(float) / career["FG_att"].astype(float).where(career["FG_att"] > 0) * 100).round(1)
     for col in ["MIN", "PTS", "REB", "AST", "STL", "BLK", "TOV"]:
         career[col] = pd.to_numeric(career[col], errors="coerce").round(1)
+    career["season"] = career["season"].astype(int)
     career["Season"] = career["season"].apply(season_label)
 
     st.subheader(f"{selected} — Career Stats")
@@ -359,6 +360,81 @@ def player_profile_tab():
     )
     fig.update_layout(height=400)
     st.plotly_chart(fig, use_container_width=True)
+
+    st.divider()
+    st.subheader("Game Log")
+
+    available_seasons = sorted(df["season"].dropna().unique().astype(int), reverse=True)
+    col1, col2 = st.columns([2, 2])
+    with col1:
+        log_season = st.selectbox(
+            "Season",
+            available_seasons,
+            format_func=season_label,
+            key="profile_log_season",
+        )
+    with col2:
+        log_game_type = st.selectbox(
+            "Season Type",
+            ["Regular Season", "Playoffs", "All"],
+            key="profile_log_gt",
+        )
+
+    log_df = df[df["season"] == log_season].copy()
+    log_df = game_type_filter(log_df, log_game_type)
+    log_df = log_df.sort_values("gameDateTimeEst")
+
+    log_df["Date"] = pd.to_datetime(log_df["gameDateTimeEst"], errors="coerce").dt.strftime("%Y-%m-%d")
+    log_df["Opponent"] = log_df["opponentteamCity"] + " " + log_df["opponentteamName"]
+    log_df["H/A"] = log_df["home"].map({1: "H", 0: "A", True: "H", False: "A"})
+    log_df["W/L"] = pd.to_numeric(log_df["win"], errors="coerce").map({1: "W", 0: "L", 1.0: "W", 0.0: "L"})
+    log_df["FG%"] = (
+        log_df["fieldGoalsMade"].astype(float)
+        / log_df["fieldGoalsAttempted"].astype(float).where(log_df["fieldGoalsAttempted"] > 0)
+        * 100
+    ).round(1)
+    log_df["Game"] = range(1, len(log_df) + 1)
+
+    log_display = log_df[["Game", "Date", "W/L", "H/A", "Opponent", "numMinutes", "points", "reboundsTotal", "assists", "steals", "blocks", "turnovers", "FG%", "plusMinusPoints"]].rename(columns={
+        "numMinutes": "MIN",
+        "points": "PTS",
+        "reboundsTotal": "REB",
+        "assists": "AST",
+        "steals": "STL",
+        "blocks": "BLK",
+        "turnovers": "TOV",
+        "plusMinusPoints": "+/-",
+    })
+    for col in ["MIN", "PTS", "REB", "AST", "STL", "BLK", "TOV"]:
+        log_display[col] = pd.to_numeric(log_display[col], errors="coerce").round(1)
+
+    if log_display.empty:
+        st.info("No games found for this selection.")
+    else:
+        st.dataframe(log_display.set_index("Game"), use_container_width=True, height=300)
+
+        stat_map = {"PTS": "points", "REB": "reboundsTotal", "AST": "assists", "STL": "steals", "BLK": "blocks", "TOV": "turnovers", "MIN": "numMinutes", "FG%": "FG%"}
+        log_stat = st.selectbox("Chart stat", list(stat_map.keys()), key="profile_log_stat")
+        plot_col = stat_map[log_stat] if log_stat != "FG%" else "FG%"
+
+        rolling = log_df[plot_col].expanding().mean().round(1)
+        fig2 = px.scatter(
+            log_df,
+            x="Game",
+            y=plot_col,
+            labels={plot_col: PLAYER_STAT_COLS.get(log_stat, log_stat), "Game": "Game #"},
+            title=f"{selected} — {PLAYER_STAT_COLS.get(log_stat, log_stat)}, {season_label(log_season)} {log_game_type} (game by game)",
+        )
+        fig2.add_scatter(
+            x=log_df["Game"],
+            y=rolling,
+            mode="lines",
+            name="Season avg",
+            line=dict(color="orange", width=2, dash="dot"),
+        )
+        fig2.update_traces(marker_size=7, selector=dict(mode="markers"))
+        fig2.update_layout(height=400, showlegend=True)
+        st.plotly_chart(fig2, use_container_width=True)
 
 
 # --- Team History Tab ---
