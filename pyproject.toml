@@ -11,3 +11,8 @@ dependencies = [
     "pyarrow>=23.0.1",
     "streamlit>=1.55.0",
 ]
+
+[dependency-groups]
+dev = [
+    "playwright>=1.58.0",
+]
