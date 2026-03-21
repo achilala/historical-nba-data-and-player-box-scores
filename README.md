@@ -2,9 +2,9 @@
 
 ![Player Stats](docs/screenshot.png)
 
-![Team Stats](docs/screenshot_team_stats.png)
-
 ![Player Profile](docs/screenshot_player_profile.png)
+
+![Team Stats](docs/screenshot_team_stats.png)
 
 ![Team History](docs/screenshot_team_history.png)
 
