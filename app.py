@@ -490,6 +490,54 @@ def team_history_tab():
     totals = totals.rename(columns={"teamFullName": "Team"}).set_index("Team")
     st.dataframe(totals, use_container_width=True)
 
+    st.divider()
+    st.subheader("Game Log")
+
+    all_teams_full = sorted(team_df["teamFullName"].dropna().unique().tolist())
+    default_team = selected_teams[0] if selected_teams else all_teams_full[0]
+    default_idx = all_teams_full.index(default_team) if default_team in all_teams_full else 0
+
+    col1, col2, col3 = st.columns([2, 2, 2])
+    with col1:
+        log_team = st.selectbox("Team", all_teams_full, index=default_idx, key="team_log_team")
+    with col2:
+        log_game_type = st.selectbox("Season Type", ["Regular Season", "Playoffs", "All"], key="team_log_gt")
+
+    team_log_df = game_type_filter(team_df[team_df["teamFullName"] == log_team], log_game_type)
+    log_seasons = sorted(team_log_df["season"].dropna().unique().astype(int), reverse=True)
+
+    with col3:
+        log_season = st.selectbox("Season", log_seasons, format_func=season_label, key="team_log_season")
+
+    log_df = team_log_df[team_log_df["season"] == log_season].copy()
+    log_df = log_df.sort_values("gameDateTimeEst")
+
+    log_df["Date"] = pd.to_datetime(log_df["gameDateTimeEst"], errors="coerce").dt.strftime("%Y-%m-%d")
+    log_df["Opponent"] = log_df["opponentTeamCity"] + " " + log_df["opponentTeamName"]
+    log_df["H/A"] = log_df["home"].map({1: "H", 0: "A", True: "H", False: "A"})
+    log_df["W/L"] = pd.to_numeric(log_df["win"], errors="coerce").map({1.0: "W", 0.0: "L"})
+    log_df["FG%"] = (
+        log_df["fieldGoalsMade"].astype(float)
+        / log_df["fieldGoalsAttempted"].astype(float).where(log_df["fieldGoalsAttempted"] > 0)
+        * 100
+    ).round(1)
+    log_df["Game"] = range(1, len(log_df) + 1)
+
+    log_display = log_df[["Game", "Date", "W/L", "H/A", "Opponent", "teamScore", "opponentScore", "reboundsTotal", "assists", "steals", "blocks", "turnovers", "FG%"]].rename(columns={
+        "teamScore": "PTS",
+        "opponentScore": "OPP",
+        "reboundsTotal": "REB",
+        "assists": "AST",
+        "steals": "STL",
+        "blocks": "BLK",
+        "turnovers": "TOV",
+    })
+
+    if log_display.empty:
+        st.info("No games found for this selection.")
+    else:
+        st.dataframe(log_display.set_index("Game"), use_container_width=True, height=300)
+
 
 # --- App Layout ---
 st.title("🏀 NBA Analytics Dashboard")
