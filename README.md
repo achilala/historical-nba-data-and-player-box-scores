@@ -17,7 +17,7 @@ An interactive analytics dashboard for exploring historical NBA data from 1946 t
 | **Player Stats** | Per-game averages leaderboard (PTS, REB, AST, STL, BLK, FG%, etc.) with season and game type filters |
 | **Player Profile** | Career season-by-season stats table and trend line chart for any player |
 | **Team Stats** | Team W-L records, scoring averages, and an offensive vs defensive rating scatter plot |
-| **Team History** | Win % trend lines across seasons for multiple teams |
+| **Team History** | Win % trend lines across seasons for multiple teams, plus a per-game log for any team and season |
 
 ## Data
 
